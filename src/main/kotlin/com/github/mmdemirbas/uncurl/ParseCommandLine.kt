@@ -4,6 +4,8 @@ fun parseCommandLine(commandLine: String): List<String> {
     // todo: if needed, provide a mechanism to include quotiation marks in result some way (a custom data class may be returned?)
     val parts = mutableListOf<String>()
     val builder = StringBuilder()
+    // todo: unescape
+    // todo: implement multiple commands?
     var terminators = ""
     commandLine.forEach { c ->
         when {
@@ -24,6 +26,7 @@ fun parseCommandLine(commandLine: String): List<String> {
     }
     if (terminators.isNotEmpty()) {
         parts += builder.toString()
+        // todo: handle missing terminator
         if (terminators.isNotBlank()) System.err.println("Missing delimiter at end: $terminators")
     }
     return parts
