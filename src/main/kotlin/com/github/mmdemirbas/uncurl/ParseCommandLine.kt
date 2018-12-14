@@ -4,23 +4,36 @@ fun parseCommandLine(commandLine: String): List<String> {
     // todo: if needed, provide a mechanism to include quotiation marks in result some way (a custom data class may be returned?)
     val parts = mutableListOf<String>()
     val builder = StringBuilder()
-    // todo: unescape
     // todo: implement multiple commands?
     var terminators = ""
+    var escaped = false
     commandLine.forEach { c ->
         when {
-            c in terminators         -> {
-                parts += builder.toString()
-                builder.clear()
-                terminators = ""
-            }
-            terminators.isNotEmpty() -> builder.append(c)
-            c in "\""                -> terminators = "\""
-            c in "'"                 -> terminators = "'"
-            c in " \t\r\n"           -> terminators = ""
-            else                     -> {
+            escaped               -> {
                 builder.append(c)
-                terminators = " \t\r\n"
+                escaped = false
+            }
+            terminators.isEmpty() -> when (c) {
+                '\\'         -> {
+                    escaped = true
+                    terminators = " \t\r\n"
+                }
+                '\"'         -> terminators = "\""
+                '\''         -> terminators = "'"
+                in " \t\r\n" -> terminators = ""
+                else         -> {
+                    builder.append(c)
+                    terminators = " \t\r\n"
+                }
+            }
+            else                  -> when (c) {
+                '\\'           -> escaped = true
+                in terminators -> {
+                    parts += builder.toString()
+                    builder.clear()
+                    terminators = ""
+                }
+                else           -> builder.append(c)
             }
         }
     }
