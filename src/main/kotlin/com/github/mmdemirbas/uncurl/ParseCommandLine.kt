@@ -1,10 +1,9 @@
 package com.github.mmdemirbas.uncurl
 
-fun parseCommandLine(commandLine: String): List<String> {
-    // todo: if needed, provide a mechanism to include quotiation marks in result some way (a custom data class may be returned?)
-    val parts = mutableListOf<String>()
+fun parseCommandLine(commandLine: String): List<List<String>> {
+    val lines = mutableListOf<List<String>>()
+    val words = mutableListOf<String>()
     val builder = StringBuilder()
-    // todo: implement multiple commands?
     var terminators = ""
     var escaped = false
     commandLine.forEach { c ->
@@ -13,34 +12,47 @@ fun parseCommandLine(commandLine: String): List<String> {
                 builder.append(c)
                 escaped = false
             }
-            terminators.isEmpty() -> when (c) {
-                '\\'         -> {
-                    escaped = true
-                    terminators = " \t\r\n"
-                }
-                '\"'         -> terminators = "\""
-                '\''         -> terminators = "'"
-                in " \t\r\n" -> terminators = ""
-                else         -> {
-                    builder.append(c)
-                    terminators = " \t\r\n"
+            terminators.isEmpty() -> {
+                when (c) {
+                    '\\'      -> {
+                        escaped = true
+                        terminators = " \t\r\n"
+                    }
+                    '\"'      -> terminators = "\""
+                    '\''      -> terminators = "'"
+                    in " \t"  -> terminators = ""
+                    in "\r\n" -> {
+                        if (words.isNotEmpty()) lines += words.toList()
+                        words.clear()
+                    }
+                    else      -> {
+                        builder.append(c)
+                        terminators = " \t\r\n"
+                    }
                 }
             }
-            else                  -> when (c) {
-                '\\'           -> escaped = true
-                in terminators -> {
-                    parts += builder.toString()
-                    builder.clear()
-                    terminators = ""
+            else                  -> {
+                when (c) {
+                    '\\'           -> escaped = true
+                    in terminators -> {
+                        words += builder.toString()
+                        builder.clear()
+                        terminators = ""
+                        if (c in "\r\n") {
+                            lines += words.toList()
+                            words.clear()
+                        }
+                    }
+                    else           -> builder.append(c)
                 }
-                else           -> builder.append(c)
             }
         }
     }
     if (terminators.isNotEmpty()) {
-        parts += builder.toString()
+        words += builder.toString()
         // todo: handle missing terminator
         if (terminators.isNotBlank()) System.err.println("Missing delimiter at end: $terminators")
     }
-    return parts
+    if (words.isNotEmpty()) lines += words.toList()
+    return lines.toList()
 }
