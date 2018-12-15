@@ -15,7 +15,7 @@ class UncurlTest {
 
     @ParameterizedTest
     @MethodSource
-    fun TestCase.`test uncurl`() = assertEquals(expected, uncurl(input))
+    fun TestCase.`test uncurl`() = assertEquals(expected, uncurl(parseCommand(RawCommand(input))))
 
     private fun `test uncurl`() = listOf(listOf("curl", "https://google.com").gives(Uncurl(method = HttpMethod.GET,
                                                                                            url = "https://google.com",

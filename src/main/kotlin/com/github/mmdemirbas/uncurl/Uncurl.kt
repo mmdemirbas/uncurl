@@ -4,29 +4,31 @@ package com.github.mmdemirbas.uncurl
  * @author Muhammed Demirbaş
  * @since 2018-12-15 01:04
  */
-fun uncurl(command: List<String>): Uncurl {
-    // todo: handle --data content
+fun uncurl(command: ParsedCommand): Uncurl {
+    // todo: handle --data content & decide http method accordingly
     // todo: support both long and short options
     // todo: check missing switch property at the end case
     // todo: check urls contains exactly one url
 
     val urls = mutableListOf<String>()
     val headers = mutableListOf<String>()
-    val it = command.drop(1).iterator()
-    while (it.hasNext()) {
-        val arg = it.next()
+    val parts = command.arguments.iterator()
+    while (parts.hasNext()) {
+        val arg = parts.next()
         when (arg) {
-            "-H"           -> headers += it.next()
-            "--compressed" -> TODO()
-            else           -> urls += arg
+            is Argument.Name        -> urls += arg.name
+            is Argument.ShortOption -> {
+                when (arg.name) {
+                    'H'  -> headers += (parts.next() as Argument.Name).name
+                    else -> TODO("unsupported short option: ${arg.name}")
+                }
+            }
+            is Argument.LongOption  -> TODO("unsupported long option: ${arg.name}")
         }
     }
     return Uncurl(method = HttpMethod.GET, url = urls.single(), headers = headers)
 }
 
-sealed class CommandPart {
-    data class CommandName(val name: String) : CommandPart()
-}
 
 sealed class HttpMethod {
     object GET : HttpMethod()

@@ -1,12 +1,32 @@
 package com.github.mmdemirbas.uncurl
 
-fun parseCommandLine(commandLine: String): List<List<String>> {
-    val lines = mutableListOf<List<String>>()
-    val words = mutableListOf<String>()
+
+data class ParsedCommand(val name: String, val arguments: List<Argument>)
+
+sealed class Argument {
+    data class Name(val name: String) : Argument()
+    data class ShortOption(val name: Char) : Argument()
+    data class LongOption(val name: String) : Argument()
+}
+
+data class RawCommand(val parts: List<String>)
+
+
+fun parseCommand(rawCommand: RawCommand) = ParsedCommand(name = rawCommand.parts[0], arguments = rawCommand.parts.drop(1).flatMap {
+    when {
+        it.startsWith("--") -> listOf(Argument.LongOption(it))
+        it.startsWith("-")  -> it.toCharArray().drop(1).map { Argument.ShortOption(it) }
+        else                -> listOf(Argument.Name(it))
+    }
+})
+
+fun tokenizeCommand(snippet: String): List<RawCommand> {
+    val commands = mutableListOf<RawCommand>()
+    val tokens = mutableListOf<String>()
     val builder = StringBuilder()
     var terminators = ""
     var escaped = false
-    commandLine.forEach { c ->
+    snippet.forEach { c ->
         when {
             escaped               -> {
                 builder.append(c)
@@ -22,8 +42,8 @@ fun parseCommandLine(commandLine: String): List<List<String>> {
                     '\''       -> terminators = "'"
                     in " \t"   -> terminators = ""
                     in "\r\n;" -> {
-                        if (words.isNotEmpty()) lines += words.toList()
-                        words.clear()
+                        if (tokens.isNotEmpty()) commands += RawCommand(tokens.toList())
+                        tokens.clear()
                     }
                     else       -> {
                         builder.append(c)
@@ -35,12 +55,12 @@ fun parseCommandLine(commandLine: String): List<List<String>> {
                 when (c) {
                     '\\'           -> escaped = true
                     in terminators -> {
-                        words += builder.toString()
+                        tokens += builder.toString()
                         builder.clear()
                         terminators = ""
                         if (c in "\r\n;") {
-                            lines += words.toList()
-                            words.clear()
+                            commands += RawCommand(tokens.toList())
+                            tokens.clear()
                         }
                     }
                     else           -> builder.append(c)
@@ -49,10 +69,10 @@ fun parseCommandLine(commandLine: String): List<List<String>> {
         }
     }
     if (terminators.isNotEmpty()) {
-        words += builder.toString()
+        tokens += builder.toString()
         // todo: handle missing terminator
         if (terminators.isNotBlank()) System.err.println("Missing delimiter at end: $terminators")
     }
-    if (words.isNotEmpty()) lines += words.toList()
-    return lines.toList()
+    if (tokens.isNotEmpty()) commands += RawCommand(tokens.toList())
+    return commands.toList()
 }
