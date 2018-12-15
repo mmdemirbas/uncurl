@@ -12,13 +12,16 @@ sealed class Argument {
 data class RawCommand(val parts: List<String>)
 
 
-fun parseCommand(rawCommand: RawCommand) = ParsedCommand(name = rawCommand.parts[0], arguments = rawCommand.parts.drop(1).flatMap {
-    when {
-        it.startsWith("--") -> listOf(Argument.LongOption(it))
-        it.startsWith("-")  -> it.toCharArray().drop(1).map { Argument.ShortOption(it) }
-        else                -> listOf(Argument.Name(it))
-    }
-})
+fun parseCommand(rawCommand: RawCommand): ParsedCommand {
+    // todo: support single-argument short-options without space between such as: -d something -> -dsomething
+    return ParsedCommand(name = rawCommand.parts[0], arguments = rawCommand.parts.drop(1).flatMap {
+        when {
+            it.startsWith("--") -> listOf(Argument.LongOption(it))
+            it.startsWith("-")  -> it.toCharArray().drop(1).map { Argument.ShortOption(it) }
+            else                -> listOf(Argument.Name(it))
+        }
+    })
+}
 
 fun tokenizeCommand(snippet: String): List<RawCommand> {
     val commands = mutableListOf<RawCommand>()
