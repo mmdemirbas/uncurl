@@ -58,7 +58,11 @@ class ParseCommandLineTest {
                                            "white\\\tspace\\ escaped\\\nincluding\\\rnewline".gives(listOf("white\tspace escaped\nincluding\rnewline")),
                                            "multiple\ncommands".gives(listOf("multiple"), listOf("commands")),
                                            "\t \r\t \n\t \r\t \nblank\t \n\t \r\t \n\r\t \nlines\r\t \n\t \r\t \n\t ".gives(listOf("blank"),
-                                                                                                                            listOf("lines")))
+                                                                                                                            listOf("lines")),
+                                           "semicolon;as ;command\t;separator".gives(listOf("semicolon"),
+                                                                                     listOf("as"),
+                                                                                     listOf("command"),
+                                                                                     listOf("separator")))
 
     private fun String.gives(vararg multipleCommandParts: List<String>) = TestCase(this, multipleCommandParts.asList())
 }

@@ -14,20 +14,20 @@ fun parseCommandLine(commandLine: String): List<List<String>> {
             }
             terminators.isEmpty() -> {
                 when (c) {
-                    '\\'      -> {
+                    '\\'       -> {
                         escaped = true
-                        terminators = " \t\r\n"
+                        terminators = " \t\r\n;"
                     }
-                    '\"'      -> terminators = "\""
-                    '\''      -> terminators = "'"
-                    in " \t"  -> terminators = ""
-                    in "\r\n" -> {
+                    '\"'       -> terminators = "\""
+                    '\''       -> terminators = "'"
+                    in " \t"   -> terminators = ""
+                    in "\r\n;" -> {
                         if (words.isNotEmpty()) lines += words.toList()
                         words.clear()
                     }
-                    else      -> {
+                    else       -> {
                         builder.append(c)
-                        terminators = " \t\r\n"
+                        terminators = " \t\r\n;"
                     }
                 }
             }
@@ -38,7 +38,7 @@ fun parseCommandLine(commandLine: String): List<List<String>> {
                         words += builder.toString()
                         builder.clear()
                         terminators = ""
-                        if (c in "\r\n") {
+                        if (c in "\r\n;") {
                             lines += words.toList()
                             words.clear()
                         }
