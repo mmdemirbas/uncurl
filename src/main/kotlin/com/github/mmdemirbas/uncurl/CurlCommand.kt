@@ -5,11 +5,13 @@ package com.github.mmdemirbas.uncurl
  * @since 2018-12-15 01:04
  */
 fun parseCurlCommand(command: ParsedCommand): CurlCommand {
+    // todo: separate abstaction for CurlCommand & HttpCommand
     // todo: handle -d & --data content & decide http method accordingly
     // todo: support both long and short options
     // todo: check missing switch property at the end case
     // todo: check urls contains exactly one url
     // todo: think how to specify responses as "copy all as curl" doesn't copy responses => check others for responses
+    // todo: how curl behaves? applies all options to all urls?
 
     val urls = mutableListOf<String>()
     val headers = mutableListOf<String>()
